@@ -38,6 +38,11 @@ extern float decay_b;
 extern float decay_c;
 
 extern int shadow_on;
+extern int reflection_on;
+extern int refraction_on;
+extern int chessboard_on;
+extern int diffuse_on;
+extern int supersampling_on;
 extern int step_max;
 
 /////////////////////////////////////////////////////////////////////
@@ -94,15 +99,21 @@ RGB_float phong(Point q, Vector v, Vector surf_norm, Spheres *sph) {
  ************************************************************************/
 RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
 	RGB_float color = background_clr;
+
     Spheres *first_intersect_sph = NULL;
     Point hit;
     first_intersect_sph = intersect_scene(ray_o, ray_u, scene, &hit);
     if (first_intersect_sph) {
         Vector surf_norm = sphere_normal(hit, first_intersect_sph);
-//        Vector shadow_ray = get_vec(hit, ray_o);
-//        if (!in_shadow()) {
-            color = phong(ray_o, ray_u, surf_norm, first_intersect_sph);
-//        }
+        Vector l = get_vec(hit, ray_o);
+        color = phong(ray_o, ray_u, surf_norm, first_intersect_sph);
+        if (step < step_max && reflection_on) {
+            Vector r = vec_minus(vec_scale(surf_norm, 2 * vec_dot(surf_norm, l)), l);
+            normalize(&r);
+            RGB_float reflected_color = recursive_ray_trace(hit, r, step+1);
+            reflected_color = clr_scale(reflected_color, first_intersect_sph->reflectance);
+            color = clr_add(color, reflected_color);
+        }
     }
 	return color;
 }
