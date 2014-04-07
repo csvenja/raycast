@@ -81,9 +81,9 @@ int step_max = 1;
 int shadow_on = 0;
 int reflection_on = 0;
 int refraction_on = 0;
-int chessboard_on = 0;
+int chess_board_on = 0;
 int diffuse_on = 0;
-int supersampling_on = 0;
+int super_sampling_on = 0;
 
 // OpenGL
 const int NumPoints = 6;
@@ -233,9 +233,9 @@ int main( int argc, char **argv )
 		if (strcmp(argv[i], "+s") == 0)	shadow_on = 1;
         if (strcmp(argv[i], "+l") == 0)	reflection_on = 1;
         if (strcmp(argv[i], "+r") == 0)	refraction_on = 1;
-        if (strcmp(argv[i], "+c") == 0)	chessboard_on = 1;
+        if (strcmp(argv[i], "+c") == 0)	chess_board_on = 1;
         if (strcmp(argv[i], "+f") == 0)	diffuse_on = 1;
-        if (strcmp(argv[i], "+p") == 0)	supersampling_on = 1;
+        if (strcmp(argv[i], "+p") == 0)	super_sampling_on = 1;
 	}
 
 	//

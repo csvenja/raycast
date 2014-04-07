@@ -40,9 +40,9 @@ extern float decay_c;
 extern int shadow_on;
 extern int reflection_on;
 extern int refraction_on;
-extern int chessboard_on;
+extern int chess_board_on;
 extern int diffuse_on;
-extern int supersampling_on;
+extern int super_sampling_on;
 extern int step_max;
 
 /////////////////////////////////////////////////////////////////////
@@ -126,6 +126,7 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
  * ray tracer. Feel free to change other parts of the function however,
  * if you must.
  *********************************************************************/
+
 void ray_trace() {
   int i, j;
   float x_grid_size = image_width / float(win_width);
@@ -144,7 +145,22 @@ void ray_trace() {
   for (i=0; i<win_height; i++) {
       for (j=0; j<win_width; j++) {
           ray = get_vec(eye_pos, cur_pixel_pos);
-          ret_color = recursive_ray_trace(cur_pixel_pos, ray, 1);
+          ret_color = recursive_ray_trace(cur_pixel_pos, ray, 0);
+          if (super_sampling_on) {
+              Point cur_pos;
+              Vector cur_ray;
+              Point sample_pos[4] = {
+                  {cur_pixel_pos.x - x_grid_size / 4, cur_pixel_pos.y - y_grid_size / 4, image_plane},
+                  {cur_pixel_pos.x + x_grid_size / 4, cur_pixel_pos.y - y_grid_size / 4, image_plane},
+                  {cur_pixel_pos.x + x_grid_size / 4, cur_pixel_pos.y + y_grid_size / 4, image_plane},
+                  {cur_pixel_pos.x - x_grid_size / 4, cur_pixel_pos.y + y_grid_size / 4, image_plane}};
+              for (int k = 0; k < 4; ++k) {
+                  cur_pos = sample_pos[k];
+                  cur_ray = get_vec(eye_pos, cur_pos);
+                  ret_color = clr_add(ret_color, recursive_ray_trace(cur_pos, cur_ray, 0));
+              }
+              ret_color = clr_scale(ret_color, 0.2);
+          }
 
       // Parallel rays can be cast instead using below
       //
