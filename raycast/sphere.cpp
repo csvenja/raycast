@@ -34,6 +34,27 @@ float intersect_sphere(Point o, Vector u, Spheres *sph, Point *hit) {
     return -1.0;
 }
 
+bool is_in_shadow(Point o, Vector u, Spheres *sph, Spheres *source) {
+    while (sph) {
+        if (sph->index != source->index) {
+            Vector o_c = get_vec(sph->center, o);
+            float a = vec_dot(u, u);
+            float b = 2 * vec_dot(u, o_c);
+            float c = vec_dot(o_c, o_c) - sph->radius * sph->radius;
+            float d = b * b - 4 * a * c;
+            if (d >= 0) {
+                float t0 = (-b - sqrt(d)) / (2 * a);
+                float t1 = (-b + sqrt(d)) / (2 * a);
+                if (t0 > 0 || t1 > 0) {
+                    return true;
+                }
+            }
+        }
+        sph = sph->next;
+    }
+    return false;
+}
+
 /*********************************************************************
  * This function returns a pointer to the sphere object that the
  * ray intersects first; NULL if no intersection. You should decide

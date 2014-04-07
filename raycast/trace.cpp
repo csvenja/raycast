@@ -49,46 +49,48 @@ extern int step_max;
 
 /////////////////////////////////////////////////////////////////////
 
-RGB_float phong(Point q, Vector v, Vector surf_norm, Spheres *sph) {
+RGB_float phong(Point q, Vector v, Vector surf_norm, Spheres *sph, bool in_shadow) {
 	RGB_float color = {0, 0, 0};
+    RGB_float ambient = {0, 0, 0};
     RGB_float diffuse = {0, 0, 0};
     RGB_float specular = {0, 0, 0};
 
     // global ambient
-    color = clr_add(color, clr_scale(global_ambient, sph->reflectance));
+    ambient = clr_add(ambient, clr_scale(global_ambient, 2 * sph->reflectance));
 
     // light ambient
-    color.r += light1_ambient[0] * sph->mat_ambient[0];
-    color.g += light1_ambient[1] * sph->mat_ambient[1];
-    color.b += light1_ambient[2] * sph->mat_ambient[2];
+    ambient.r += light1_ambient[0] * sph->mat_ambient[0];
+    ambient.g += light1_ambient[1] * sph->mat_ambient[1];
+    ambient.b += light1_ambient[2] * sph->mat_ambient[2];
+
+    if (in_shadow) {
+        return ambient;
+    }
 
     // light diffuse
     Vector l = get_vec(q, light1);
     float d = vec_len(l);
     normalize(&l);
     float diffuse_coeff = vec_dot(surf_norm, l);
-    diffuse.r = light1_diffuse[0] * sph->mat_diffuse[0];
-    diffuse.g = light1_diffuse[1] * sph->mat_diffuse[1];
-    diffuse.b = light1_diffuse[2] * sph->mat_diffuse[2];
+    diffuse.r += light1_diffuse[0] * sph->mat_diffuse[0];
+    diffuse.g += light1_diffuse[1] * sph->mat_diffuse[1];
+    diffuse.b += light1_diffuse[2] * sph->mat_diffuse[2];
     diffuse = clr_scale(diffuse, diffuse_coeff);
 
     // light specular
     Vector r = vec_minus(vec_scale(surf_norm, 2 * vec_dot(surf_norm, l)), l);
     normalize(&r);
     float specular_coeff = pow(vec_dot(r, v), sph->mat_shineness);
-    specular.r = light1_specular[0] * sph->mat_specular[0];
-    specular.g = light1_specular[1] * sph->mat_specular[1];
-    specular.b = light1_specular[2] * sph->mat_specular[2];
+    specular.r += light1_specular[0] * sph->mat_specular[0];
+    specular.g += light1_specular[1] * sph->mat_specular[1];
+    specular.b += light1_specular[2] * sph->mat_specular[2];
     specular = clr_scale(specular, specular_coeff);
 
-    // attenuation
-    float attenuation_coeff = 1 / (decay_a + decay_b * d + decay_c * d * d);
-//    specularIllumination(sph, &color, r, v, attenuation_coeff);
 
-//    color = clr_add(color, clr_scale(clr_add(diffuse, specular), attenuation_coeff));
-    color = clr_add(color, clr_scale(diffuse, attenuation_coeff));
-//    color = clr_add(color, clr_scale(specular, attenuation_coeff));
-	return color;
+    // attenuation
+    float attenuation_coeff = 1.0 / (decay_a + decay_b * d + decay_c * pow(d, 2));
+    color = clr_add(ambient, clr_scale(clr_add(diffuse, specular), attenuation_coeff));
+    return color;
 }
 
 /************************************************************************
@@ -103,8 +105,18 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
     first_intersect_sph = intersect_scene(ray_o, ray_u, scene, &hit);
     if (first_intersect_sph) {
         Vector surf_norm = sphere_normal(hit, first_intersect_sph);
+        normalize(&surf_norm);
         Vector l = get_vec(hit, ray_o);
-        color = phong(ray_o, ray_u, surf_norm, first_intersect_sph);
+        normalize(&l);
+        Vector v = get_vec(hit, eye_pos);
+        normalize(&v);
+        Vector shadow_ray = get_vec(hit, light1);
+        if (shadow_on && is_in_shadow(hit, shadow_ray, scene, first_intersect_sph)) {
+            color = phong(ray_o, v, surf_norm, first_intersect_sph, true);
+        }
+        else {
+            color = phong(ray_o, v, surf_norm, first_intersect_sph, false);
+        }
         if (step < step_max && reflection_on) {
             Vector r = vec_minus(vec_scale(surf_norm, 2 * vec_dot(surf_norm, l)), l);
             normalize(&r);
