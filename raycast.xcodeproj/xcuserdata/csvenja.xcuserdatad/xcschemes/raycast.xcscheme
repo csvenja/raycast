@@ -59,7 +59,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "&#x2013;d 5"
+            argument = "&#x2013;d 2"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+f"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

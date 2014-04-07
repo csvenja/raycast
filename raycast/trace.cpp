@@ -4,6 +4,8 @@
 #include <math.h>
 #include "global.h"
 #include "sphere.h"
+#include <cstdlib>
+#include <ctime>
 
 //
 // Global variables
@@ -89,10 +91,6 @@ RGB_float phong(Point q, Vector v, Vector surf_norm, Spheres *sph) {
 	return color;
 }
 
-//bool in_shadow() {
-//
-//}
-
 /************************************************************************
  * This is the recursive ray tracer - you need to implement this!
  * You should decide what arguments to use.
@@ -113,6 +111,21 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
             RGB_float reflected_color = recursive_ray_trace(hit, r, step+1);
             reflected_color = clr_scale(reflected_color, first_intersect_sph->reflectance);
             color = clr_add(color, reflected_color);
+
+            if (diffuse_on) {
+                srand(static_cast <unsigned> (time(0)));
+                for (int i = 0; i < RANDOM_RAYS; ++i) {
+                    Vector random_ray = {
+                        static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
+                        static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
+                        static_cast <float> (rand()) / static_cast <float> (RAND_MAX)};
+                    normalize(&random_ray);
+                    RGB_float diffuse_color = recursive_ray_trace(hit, random_ray, step+1);
+                    diffuse_color = clr_scale(diffuse_color, first_intersect_sph->reflectance);
+                    color = clr_add(color, clr_scale(diffuse_color, 0.1));
+                }
+                color = clr_scale(color, 1.0 / 1.5);
+            }
         }
     }
 	return color;
