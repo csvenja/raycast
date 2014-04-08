@@ -78,6 +78,12 @@ void normalize(Vector *u) {
   (*u).z = (*u).z / p;
 }
 
+void limit(RGB_float *p) {
+    (*p).r = (*p).r > 255 ? 255 : (*p).r;
+    (*p).r = (*p).r > 255 ? 255 : (*p).r;
+    (*p).r = (*p).r > 255 ? 255 : (*p).r;
+}
+
 //
 // return a scaled vector
 //

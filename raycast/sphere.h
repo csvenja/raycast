@@ -17,7 +17,7 @@ typedef struct sphere {
   float reflectance;       // this number [0,1] determines how much 
                            // reflected light contributes to the color
                            // of a pixel
-    bool transparent;
+    bool transparent = false;
   struct sphere *next;
 } Spheres;   // a list of spheres
 

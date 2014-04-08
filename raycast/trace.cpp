@@ -146,20 +146,18 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
         Vector v = get_vec(hit, eye_pos);
         normalize(&v);
         Vector shadow_ray = get_vec(hit, light1);
-        if (first_intersect_sph->transparent) {
-            color = {0, 0, 0};
-        }
-        if (refraction_on && step < step_max) {
-            Vector refracted_ray = refraction(ray_u, surf_norm);
-            RGB_float refracted_color = {0, 0, 0};
-            refracted_color = recursive_ray_trace(hit, refracted_ray, step + 1);
-            color = clr_add(clr_scale(color, 0.9), clr_scale(refracted_color, 0.5));
-        }
         if (shadow_on) {
             in_shadow = is_in_shadow(hit, shadow_ray, scene, first_intersect_sph);
         }
-        else {
-            color = phong(ray_o, v, surf_norm, first_intersect_sph, in_shadow);
+        color = phong(ray_o, v, surf_norm, first_intersect_sph, in_shadow);
+        if (refraction_on && first_intersect_sph->transparent) {
+            color = {0, 0, 0};
+            if (refraction_on && step < step_max) {
+                Vector refracted_ray = refraction(ray_u, surf_norm);
+                RGB_float refracted_color = {0, 0, 0};
+                refracted_color = recursive_ray_trace(hit, refracted_ray, step + 1);
+                color = clr_add(clr_scale(color, 0.9), clr_scale(refracted_color, 0.5));
+            }
         }
         if (reflection_on && step < step_max) {
             Vector r = vec_minus(vec_scale(surf_norm, 2 * vec_dot(surf_norm, l)), l);
@@ -167,7 +165,6 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
             RGB_float reflected_color = recursive_ray_trace(hit, r, step + 1);
             reflected_color = clr_scale(reflected_color, first_intersect_sph->reflectance);
             color = clr_add(color, reflected_color);
-
             if (diffuse_on) {
                 srand(static_cast <unsigned> (time(0)));
                 for (int i = 0; i < RANDOM_RAYS; ++i) {
