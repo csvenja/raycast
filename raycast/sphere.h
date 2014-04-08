@@ -9,9 +9,9 @@ typedef struct sphere {
   Point center;
   float radius;
 
-    float mat_ambient[3];    // material property used in Phong model
-    float mat_diffuse[3];
-    float mat_specular[3];
+    RGB_float mat_ambient;    // material property used in Phong model
+    RGB_float mat_diffuse;
+    RGB_float mat_specular;
     float mat_shineness;
 
   float reflectance;       // this number [0,1] determines how much 
@@ -20,6 +20,15 @@ typedef struct sphere {
   struct sphere *next;
 } Spheres;   // a list of spheres
 
+typedef struct chessboard {
+    Point center;
+    Vector norm;
+    int width;
+    int length;
+    float reflectance;
+    RGB_float ambient;
+} Chessboard;
+
 // intersect ray with sphere
 Spheres *intersect_scene(Point, Vector, Spheres *, Point *);
 bool is_in_shadow(Point o, Vector u, Spheres *sph, Spheres *source);
@@ -27,4 +36,5 @@ bool is_in_shadow(Point o, Vector u, Spheres *sph, Spheres *source);
 Vector sphere_normal(Point, Spheres *);
 // add a sphere to the sphere list
 Spheres *add_sphere(Spheres *, Point, float, float [], float [], float [], float, float, int);
-
+bool intersect_board(Point o, Vector u, Point *hit);
+RGB_float chess_board_color(Point p);

@@ -3,6 +3,9 @@
 #include <math.h>
 #include <float.h>
 
+extern Chessboard chess_board;
+extern RGB_float background_clr;
+
 /**********************************************************************
  * This function intersects a ray with a given sphere 'sph'. You should
  * use the parametric representation of a line and do the intersection.
@@ -36,7 +39,7 @@ float intersect_sphere(Point o, Vector u, Spheres *sph, Point *hit) {
 
 bool is_in_shadow(Point o, Vector u, Spheres *sph, Spheres *source) {
     while (sph) {
-        if (sph->index != source->index) {
+        if (source == NULL || sph->index != source->index) {
             Vector o_c = get_vec(sph->center, o);
             float a = vec_dot(u, u);
             float b = 2 * vec_dot(u, o_c);
@@ -77,6 +80,48 @@ Spheres *intersect_scene(Point ray_o, Vector ray_u, Spheres *sphere_list, Point 
 	return first_intersect_sph;
 }
 
+bool intersect_board(Point o, Vector u, Point *hit) {
+    // Wikipedia Line-plane intersection
+    Vector p_l = get_vec(chess_board.center, o);
+    float p_l_n = vec_dot(u, chess_board.norm);
+    float l_n = vec_dot(p_l, chess_board.norm);
+
+    // parallel
+    if (p_l_n == 0 && l_n != 0) {
+        return false;
+    }
+    else {
+        float t = -l_n / p_l_n;
+        if (t > 0) {
+            hit->x = o.x + t * u.x;
+            hit->y = o.y + t * u.y;
+            hit->z = o.z + t * u.z;
+            if (hit->x > chess_board.center.x + chess_board.width / 2 ||
+                hit->x < chess_board.center.x - chess_board.width / 2 ||
+                hit->z > chess_board.center.z + chess_board.length / 2 ||
+                hit->z < chess_board.center.z - chess_board.length / 2) {
+                return false;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+RGB_float chess_board_color(Point p)
+{
+
+    if (p.x > 0) {
+        p.x += 1;
+    }
+    if ((int(p.x) + int(p.z)) % 2 == 0) {
+        return {0, 0, 0};
+    }
+    else {
+        return {1, 1, 1};
+    }
+}
+
 /*****************************************************
  * This function adds a sphere into the sphere list
  *
@@ -91,15 +136,15 @@ Spheres *add_sphere(Spheres *slist, Point ctr, float rad, float amb[],
   new_sphere->index = sindex;
   new_sphere->center = ctr;
   new_sphere->radius = rad;
-    (new_sphere->mat_ambient)[0] = amb[0];
-    (new_sphere->mat_ambient)[1] = amb[1];
-    (new_sphere->mat_ambient)[2] = amb[2];
-    (new_sphere->mat_diffuse)[0] = dif[0];
-    (new_sphere->mat_diffuse)[1] = dif[1];
-    (new_sphere->mat_diffuse)[2] = dif[2];
-    (new_sphere->mat_specular)[0] = spe[0];
-    (new_sphere->mat_specular)[1] = spe[1];
-    (new_sphere->mat_specular)[2] = spe[2];
+    (new_sphere->mat_ambient).r = amb[0];
+    (new_sphere->mat_ambient).g = amb[1];
+    (new_sphere->mat_ambient).b = amb[2];
+    (new_sphere->mat_diffuse).r = dif[0];
+    (new_sphere->mat_diffuse).g = dif[1];
+    (new_sphere->mat_diffuse).b = dif[2];
+    (new_sphere->mat_specular).r = spe[0];
+    (new_sphere->mat_specular).g = spe[1];
+    (new_sphere->mat_specular).b = spe[2];
   new_sphere->mat_shineness = shine;
   new_sphere->reflectance = refl;
   new_sphere->next = NULL;

@@ -51,7 +51,6 @@
 		D4152F0418F16E8400EAF51D /* raycast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = raycast.cpp; sourceTree = "<group>"; };
 		D4152F0518F16E8400EAF51D /* scene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scene.cpp; sourceTree = "<group>"; };
 		D4152F0618F16E8400EAF51D /* scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scene.h; sourceTree = "<group>"; };
-		D4152F0718F16E8400EAF51D /* skeleton_code.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = skeleton_code.bmp; sourceTree = "<group>"; };
 		D4152F0818F16E8400EAF51D /* sphere.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sphere.cpp; sourceTree = "<group>"; };
 		D4152F0918F16E8400EAF51D /* sphere.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sphere.h; sourceTree = "<group>"; };
 		D4152F0A18F16E8400EAF51D /* trace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = trace.cpp; sourceTree = "<group>"; };
@@ -106,7 +105,6 @@
 				D4152F0418F16E8400EAF51D /* raycast.cpp */,
 				D4152F0518F16E8400EAF51D /* scene.cpp */,
 				D4152F0618F16E8400EAF51D /* scene.h */,
-				D4152F0718F16E8400EAF51D /* skeleton_code.bmp */,
 				D4152F0818F16E8400EAF51D /* sphere.cpp */,
 				D4152F0918F16E8400EAF51D /* sphere.h */,
 				D4152F0A18F16E8400EAF51D /* trace.cpp */,
@@ -311,6 +309,7 @@
 				D4152EF418F16E0500EAF51D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

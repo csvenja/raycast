@@ -5,8 +5,8 @@
  *      
  *  Render a simple scene using ray tracing
  * 
- *  NAME:
- *  SFU ID:
+ *  NAME: Shan Cao
+ *  SFU ID: 301239915
  *
  *  Template code for drawing a scene using raycasting.
  *  Some portions of the code was originally written by 
@@ -57,6 +57,7 @@ float image_plane = -1.5;           // image plane position
 
 // list of spheres in the scene
 Spheres *scene = NULL;
+Chessboard chess_board;
 
 // light 1 position and color
 Point light1;
@@ -205,8 +206,6 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	}
 }
-
-
 
 //----------------------------------------------------------------------------
 

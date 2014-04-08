@@ -113,3 +113,13 @@ RGB_float clr_scale(RGB_float p, float s) {
 
   return ret;
 }
+
+RGB_float clr_multi(RGB_float p, RGB_float q) {
+    RGB_float ret;
+
+    ret.r = q.r * p.r;
+    ret.g = q.g * p.g;
+    ret.b = q.b * p.b;
+
+    return ret;
+}

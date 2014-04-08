@@ -24,12 +24,13 @@ extern RGB_float background_clr;
 extern RGB_float null_clr;
 
 extern Spheres *scene;
+extern Chessboard chess_board;
 
 // light 1 position and color
 extern Point light1;
-extern float light1_ambient[3];
-extern float light1_diffuse[3];
-extern float light1_specular[3];
+extern RGB_float light1_ambient;
+extern RGB_float light1_diffuse;
+extern RGB_float light1_specular;
 
 // global ambient term
 extern RGB_float global_ambient;
@@ -59,9 +60,7 @@ RGB_float phong(Point q, Vector v, Vector surf_norm, Spheres *sph, bool in_shado
     ambient = clr_add(ambient, clr_scale(global_ambient, 2 * sph->reflectance));
 
     // light ambient
-    ambient.r += light1_ambient[0] * sph->mat_ambient[0];
-    ambient.g += light1_ambient[1] * sph->mat_ambient[1];
-    ambient.b += light1_ambient[2] * sph->mat_ambient[2];
+    ambient = clr_add(ambient, clr_multi(light1_ambient, sph->mat_ambient));
 
     if (in_shadow) {
         return ambient;
@@ -72,20 +71,17 @@ RGB_float phong(Point q, Vector v, Vector surf_norm, Spheres *sph, bool in_shado
     float d = vec_len(l);
     normalize(&l);
     float diffuse_coeff = vec_dot(surf_norm, l);
-    diffuse.r += light1_diffuse[0] * sph->mat_diffuse[0];
-    diffuse.g += light1_diffuse[1] * sph->mat_diffuse[1];
-    diffuse.b += light1_diffuse[2] * sph->mat_diffuse[2];
+    diffuse = clr_multi(light1_diffuse, sph->mat_diffuse);
     diffuse = clr_scale(diffuse, diffuse_coeff);
 
     // light specular
-    Vector r = vec_minus(vec_scale(surf_norm, 2 * vec_dot(surf_norm, l)), l);
+    float cos = vec_dot(surf_norm, l);
+    cos = cos < 0 ? 0.0 : cos;
+    Vector r = vec_minus(vec_scale(surf_norm, 2 * cos), l);
     normalize(&r);
     float specular_coeff = pow(vec_dot(r, v), sph->mat_shineness);
-    specular.r += light1_specular[0] * sph->mat_specular[0];
-    specular.g += light1_specular[1] * sph->mat_specular[1];
-    specular.b += light1_specular[2] * sph->mat_specular[2];
+    specular = clr_multi(light1_specular, sph->mat_specular);
     specular = clr_scale(specular, specular_coeff);
-
 
     // attenuation
     float attenuation_coeff = 1.0 / (decay_a + decay_b * d + decay_c * pow(d, 2));
@@ -103,6 +99,17 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
     Spheres *first_intersect_sph = NULL;
     Point hit;
     first_intersect_sph = intersect_scene(ray_o, ray_u, scene, &hit);
+    bool in_shadow = false;
+    if (chess_board_on) {
+        Point board_hit;
+        if (intersect_board(ray_o, ray_u, &board_hit)) {
+            color = chess_board_color(board_hit);
+            Vector board_shadow_ray = get_vec(board_hit, light1);
+            if (is_in_shadow(board_hit, board_shadow_ray, scene, NULL)) {
+                color = clr_scale(color, 0.5);
+            }
+        }
+    }
     if (first_intersect_sph) {
         Vector surf_norm = sphere_normal(hit, first_intersect_sph);
         normalize(&surf_norm);
@@ -111,12 +118,10 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
         Vector v = get_vec(hit, eye_pos);
         normalize(&v);
         Vector shadow_ray = get_vec(hit, light1);
-        if (shadow_on && is_in_shadow(hit, shadow_ray, scene, first_intersect_sph)) {
-            color = phong(ray_o, v, surf_norm, first_intersect_sph, true);
+        if (shadow_on) {
+            in_shadow = is_in_shadow(hit, shadow_ray, scene, first_intersect_sph);
         }
-        else {
-            color = phong(ray_o, v, surf_norm, first_intersect_sph, false);
-        }
+        color = phong(ray_o, v, surf_norm, first_intersect_sph, in_shadow);
         if (step < step_max && reflection_on) {
             Vector r = vec_minus(vec_scale(surf_norm, 2 * vec_dot(surf_norm, l)), l);
             normalize(&r);
@@ -161,6 +166,15 @@ void ray_trace() {
   RGB_float ret_color;
   Point cur_pixel_pos;
   Vector ray;
+
+    if (chess_board_on) {
+        chess_board.center = {0, -3, -5};
+        chess_board.norm = {0, -10, 3};
+        chess_board.width = 8;
+        chess_board.length = 8;
+        chess_board.reflectance = 0.3;
+        chess_board.ambient = {0.2, 0.2, 0.2};
+    }
 
   // ray is cast through center of pixel
   cur_pixel_pos.x = x_start + 0.5 * x_grid_size;
