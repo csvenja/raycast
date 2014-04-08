@@ -108,6 +108,16 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
             if (is_in_shadow(board_hit, board_shadow_ray, scene, NULL)) {
                 color = clr_scale(color, 0.5);
             }
+            if (reflection_on && step < step_max) {
+                Vector board_reflect = ray_u;
+                board_reflect.y = -board_reflect.y;
+                RGB_float reflect_color = recursive_ray_trace(board_hit, board_reflect, step+1);
+                if (reflect_color.r != background_clr.r &&
+                    reflect_color.g != background_clr.g &&
+                    reflect_color.b != background_clr.b) {
+                    color = clr_add(clr_scale(color, 0.7), clr_scale(reflect_color, 0.3));
+                }
+            }
         }
     }
     if (first_intersect_sph) {
@@ -122,7 +132,7 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
             in_shadow = is_in_shadow(hit, shadow_ray, scene, first_intersect_sph);
         }
         color = phong(ray_o, v, surf_norm, first_intersect_sph, in_shadow);
-        if (step < step_max && reflection_on) {
+        if (reflection_on && step < step_max) {
             Vector r = vec_minus(vec_scale(surf_norm, 2 * vec_dot(surf_norm, l)), l);
             normalize(&r);
             RGB_float reflected_color = recursive_ray_trace(hit, r, step+1);
