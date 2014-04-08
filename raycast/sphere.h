@@ -39,3 +39,4 @@ Vector sphere_normal(Point, Spheres *);
 Spheres *add_sphere(Spheres *, Point, float, float [], float [], float [], float, float, int);
 bool intersect_board(Point o, Vector u, Point *hit);
 RGB_float chess_board_color(Point p);
+void set_transparent(Spheres *);

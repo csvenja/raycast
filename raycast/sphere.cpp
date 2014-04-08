@@ -6,6 +6,13 @@
 extern Chessboard chess_board;
 extern RGB_float background_clr;
 
+void set_transparent(Spheres *sph) {
+    while (sph) {
+        sph->transparent = true;
+        sph = sph->next;
+    }
+}
+
 /**********************************************************************
  * This function intersects a ray with a given sphere 'sph'. You should
  * use the parametric representation of a line and do the intersection.

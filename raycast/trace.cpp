@@ -48,6 +48,10 @@ extern int diffuse_on;
 extern int super_sampling_on;
 extern int step_max;
 
+bool in_sphere;
+int n_outside = 1.0;
+int n_inside = 1.5;
+
 /////////////////////////////////////////////////////////////////////
 
 RGB_float phong(Point q, Vector v, Vector surf_norm, Spheres *sph, bool in_shadow) {
@@ -89,25 +93,22 @@ RGB_float phong(Point q, Vector v, Vector surf_norm, Spheres *sph, bool in_shado
     return color;
 }
 
-Vector getRefractedRay(float initial_refraction, Spheres *sph, Vector surface_norm, Vector light_ray)
-{
-	float refraction_index = 1.5;
-	float n = initial_refraction/refraction_index;
-
-	Vector refract_ray;
-
-	float cosTheta1 = vec_dot(surface_norm, vec_scale(light_ray,-1));
-	float cosTheta2 = sqrt(1.0f-pow(n,2)*(1-(cosTheta1*cosTheta1)));
-
-	if(cosTheta1 > 0.0f)
-	{
-		refract_ray = vec_plus(vec_scale(light_ray,n), vec_scale(surface_norm, n*cosTheta1-cosTheta2));
-	}
-	else
-	{
-		refract_ray = vec_minus(vec_scale(light_ray,n), vec_scale(surface_norm, n*cosTheta1-cosTheta2));
-	}
-	return refract_ray;
+Vector refraction(Vector l, Vector n) {
+    float r;
+    if (!in_sphere) {
+        r = n_outside / n_inside;
+    }
+    else {
+        r = n_inside / n_outside;
+    }
+    in_sphere = !in_sphere;
+    normalize(&l);
+    float c = -vec_dot(n, l);
+    float coeff = r * c - sqrt(1 - pow(r, 2) * (1 - pow(c, 2)));
+    Vector refracted_ray;
+    refracted_ray = vec_plus(vec_scale(l, r), vec_scale(n, coeff));
+    normalize(&refracted_ray);
+    return refracted_ray;
 }
 
 /************************************************************************
@@ -133,11 +134,7 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
                 Vector board_reflect = ray_u;
                 board_reflect.y = -board_reflect.y;
                 RGB_float reflect_color = recursive_ray_trace(board_hit, board_reflect, step + 1);
-//                if (reflect_color.r != background_clr.r &&
-//                    reflect_color.g != background_clr.g &&
-//                    reflect_color.b != background_clr.b) {
-                    color = clr_add(clr_scale(color, 0.7), clr_scale(reflect_color, 0.3));
-//                }
+                color = clr_add(clr_scale(color, 0.7), clr_scale(reflect_color, 0.3));
             }
         }
     }
@@ -149,15 +146,21 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
         Vector v = get_vec(hit, eye_pos);
         normalize(&v);
         Vector shadow_ray = get_vec(hit, light1);
-//        if (refraction_on) {
-//            if (first_intersect_sph->transparent == true) {
-//                return {0, 0, 0};
-//            }
-//        }
+        if (first_intersect_sph->transparent) {
+            color = {0, 0, 0};
+        }
+        if (refraction_on && step < step_max) {
+            Vector refracted_ray = refraction(ray_u, surf_norm);
+            RGB_float refracted_color = {0, 0, 0};
+            refracted_color = recursive_ray_trace(hit, refracted_ray, step + 1);
+            color = clr_add(clr_scale(color, 0.9), clr_scale(refracted_color, 0.5));
+        }
         if (shadow_on) {
             in_shadow = is_in_shadow(hit, shadow_ray, scene, first_intersect_sph);
         }
-        color = phong(ray_o, v, surf_norm, first_intersect_sph, in_shadow);
+        else {
+            color = phong(ray_o, v, surf_norm, first_intersect_sph, in_shadow);
+        }
         if (reflection_on && step < step_max) {
             Vector r = vec_minus(vec_scale(surf_norm, 2 * vec_dot(surf_norm, l)), l);
             normalize(&r);
@@ -179,15 +182,6 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
                 }
                 color = clr_scale(color, 1.0 / 1.5);
             }
-        }
-        if (refraction_on && step < step_max) {
-            Vector refracted_ray = getRefractedRay(1.5, first_intersect_sph, surf_norm, l);
-			normalize(&refracted_ray);
-			refracted_ray.x = hit.x + refracted_ray.x;
-			refracted_ray.y = hit.x + refracted_ray.y;
-			refracted_ray.z = hit.x + refracted_ray.z;
-			RGB_float refracted_color = recursive_ray_trace(hit, refracted_ray, step + 1);
-			color = clr_add(color, refracted_color);
         }
     }
 	return color;
@@ -228,6 +222,7 @@ void ray_trace() {
 
   for (i=0; i<win_height; i++) {
       for (j=0; j<win_width; j++) {
+          in_sphere = false;
           ray = get_vec(eye_pos, cur_pixel_pos);
           ret_color = recursive_ray_trace(cur_pixel_pos, ray, 0);
           if (super_sampling_on) {

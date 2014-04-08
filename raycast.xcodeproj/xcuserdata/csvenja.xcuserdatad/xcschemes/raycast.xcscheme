@@ -88,7 +88,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+r"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-d 0"

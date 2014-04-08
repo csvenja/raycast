@@ -109,7 +109,7 @@ void set_up_user_scene() {
     decay_c = 0.0;
 
     // sphere 1
-    Point sphere1_ctr = {1.5, -0.2, -3.2};
+    Point sphere1_ctr = {-1, -0.2, -5};
     float sphere1_rad = 1.23;
     float sphere1_ambient[] = {0.7, 0.7, 0.7};
     float sphere1_diffuse[] = {0.1, 0.5, 0.8};
@@ -144,7 +144,5 @@ void set_up_user_scene() {
     scene = add_sphere(scene, sphere3_ctr, sphere3_rad, sphere3_ambient,
                        sphere3_diffuse, sphere3_specular, sphere3_shineness,
                        sphere3_reflectance, 3);
-    if (refraction_on) {
-        scene->transparent = true;
-    }
+    set_transparent(scene);
 }
