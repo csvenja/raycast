@@ -111,12 +111,12 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
             if (reflection_on && step < step_max) {
                 Vector board_reflect = ray_u;
                 board_reflect.y = -board_reflect.y;
-                RGB_float reflect_color = recursive_ray_trace(board_hit, board_reflect, step+1);
-                if (reflect_color.r != background_clr.r &&
-                    reflect_color.g != background_clr.g &&
-                    reflect_color.b != background_clr.b) {
+                RGB_float reflect_color = recursive_ray_trace(board_hit, board_reflect, step + 1);
+//                if (reflect_color.r != background_clr.r &&
+//                    reflect_color.g != background_clr.g &&
+//                    reflect_color.b != background_clr.b) {
                     color = clr_add(clr_scale(color, 0.7), clr_scale(reflect_color, 0.3));
-                }
+//                }
             }
         }
     }
@@ -135,7 +135,7 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
         if (reflection_on && step < step_max) {
             Vector r = vec_minus(vec_scale(surf_norm, 2 * vec_dot(surf_norm, l)), l);
             normalize(&r);
-            RGB_float reflected_color = recursive_ray_trace(hit, r, step+1);
+            RGB_float reflected_color = recursive_ray_trace(hit, r, step + 1);
             reflected_color = clr_scale(reflected_color, first_intersect_sph->reflectance);
             color = clr_add(color, reflected_color);
 
@@ -147,7 +147,7 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
                         static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
                         static_cast <float> (rand()) / static_cast <float> (RAND_MAX)};
                     normalize(&random_ray);
-                    RGB_float diffuse_color = recursive_ray_trace(hit, random_ray, step+1);
+                    RGB_float diffuse_color = recursive_ray_trace(hit, random_ray, step + 1);
                     diffuse_color = clr_scale(diffuse_color, first_intersect_sph->reflectance);
                     color = clr_add(color, clr_scale(diffuse_color, 0.1));
                 }

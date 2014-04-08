@@ -114,6 +114,7 @@ void set_up_user_scene() {
     float sphere1_specular[] = {1.0, 1.0, 1.0};
     float sphere1_shineness = 10;
     float sphere1_reflectance = 0.4;
+//    float sphere1_
     scene = add_sphere(scene, sphere1_ctr, sphere1_rad, sphere1_ambient,
                        sphere1_diffuse, sphere1_specular, sphere1_shineness,
                        sphere1_reflectance, 1);
