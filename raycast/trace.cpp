@@ -89,6 +89,27 @@ RGB_float phong(Point q, Vector v, Vector surf_norm, Spheres *sph, bool in_shado
     return color;
 }
 
+Vector getRefractedRay(float initial_refraction, Spheres *sph, Vector surface_norm, Vector light_ray)
+{
+	float refraction_index = 1.5;
+	float n = initial_refraction/refraction_index;
+
+	Vector refract_ray;
+
+	float cosTheta1 = vec_dot(surface_norm, vec_scale(light_ray,-1));
+	float cosTheta2 = sqrt(1.0f-pow(n,2)*(1-(cosTheta1*cosTheta1)));
+
+	if(cosTheta1 > 0.0f)
+	{
+		refract_ray = vec_plus(vec_scale(light_ray,n), vec_scale(surface_norm, n*cosTheta1-cosTheta2));
+	}
+	else
+	{
+		refract_ray = vec_minus(vec_scale(light_ray,n), vec_scale(surface_norm, n*cosTheta1-cosTheta2));
+	}
+	return refract_ray;
+}
+
 /************************************************************************
  * This is the recursive ray tracer - you need to implement this!
  * You should decide what arguments to use.
@@ -128,6 +149,11 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
         Vector v = get_vec(hit, eye_pos);
         normalize(&v);
         Vector shadow_ray = get_vec(hit, light1);
+//        if (refraction_on) {
+//            if (first_intersect_sph->transparent == true) {
+//                return {0, 0, 0};
+//            }
+//        }
         if (shadow_on) {
             in_shadow = is_in_shadow(hit, shadow_ray, scene, first_intersect_sph);
         }
@@ -154,6 +180,15 @@ RGB_float recursive_ray_trace(Point ray_o, Vector ray_u, int step) {
                 color = clr_scale(color, 1.0 / 1.5);
             }
         }
+        if (refraction_on && step < step_max) {
+            Vector refracted_ray = getRefractedRay(1.5, first_intersect_sph, surf_norm, l);
+			normalize(&refracted_ray);
+			refracted_ray.x = hit.x + refracted_ray.x;
+			refracted_ray.y = hit.x + refracted_ray.y;
+			refracted_ray.z = hit.x + refracted_ray.z;
+			RGB_float refracted_color = recursive_ray_trace(hit, refracted_ray, step + 1);
+			color = clr_add(color, refracted_color);
+        }
     }
 	return color;
 }
@@ -179,7 +214,7 @@ void ray_trace() {
 
     if (chess_board_on) {
         chess_board.center = {0, -3, -5};
-        chess_board.norm = {0, -10, 3};
+        chess_board.norm = {0, -10, 0};
         chess_board.width = 8;
         chess_board.length = 8;
         chess_board.reflectance = 0.3;
